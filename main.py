@@ -190,13 +190,14 @@ def eval_node(node):
         if t == MUL:
             return left_val * right_val
         if t == DIV:
-            return left_val / right_val  # you can change to int division if you want
+            if right_val == 0:
+                raise Exception("Error: division by zero") # avoid division by zero
+            return left_val / right_val
 
     raise Exception(f"Unknown node type: {node}")
 
 
 # Simple REPL (main loop) to test the lexer and parser
-
 while True:
     expr = input(">>> ")
     if expr.strip().lower() in ("exit", "quit"):
