@@ -1,9 +1,11 @@
 #Token types
+
 NUMBER = "NUMBER"
 PLUS = "PLUS"
 MINUS = "MINUS"
 MUL = "MUL"
 DIV = "DIV"
+POW = "POW"
 LPAREN = "LPAREN"
 RPAREN = "RPAREN"
 EOF = "EOF"
@@ -95,6 +97,11 @@ class Lexer:
                 self.advance()
                 continue
 
+            if self.current_char == "^":
+                tokens.append(Token(POW, "^"))
+                self.advance()
+                continue
+
             if self.current_char == "(":
                 tokens.append(Token(LPAREN, "("))
                 self.advance()
@@ -142,14 +149,27 @@ class Parser:
 
         return node
 
-    # term -> factor ((MUL | DIV) factor)*
+    # term -> power ((MUL | DIV) power)*
     def term(self):
-        node = self.factor()
+        node = self.power()
 
         while self.current_token.type in (MUL, DIV):
             op_token = self.current_token
             self.advance()
-            right = self.factor()
+            right = self.power()
+            node = BinOpNode(node, op_token, right)
+
+        return node
+
+    # power -> factor (POW power)?
+    def power(self):
+        node = self.factor()
+
+        # right-associative: a ^ b ^ c = a ^ (b ^ c)
+        if self.current_token.type == POW:
+            op_token = self.current_token
+            self.advance()
+            right = self.power()
             node = BinOpNode(node, op_token, right)
 
         return node
@@ -199,6 +219,9 @@ def eval_node(node):
             if right_val == 0:
                 raise Exception("Error: division by zero") # avoid division by zero
             return left_val / right_val
+        if t == POW:
+            return left_val ** right_val
+
 
     raise Exception(f"Unknown node type: {node}")
 
