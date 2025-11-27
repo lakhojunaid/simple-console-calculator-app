@@ -158,6 +158,12 @@ class Parser:
     def factor(self):
         tok = self.current_token
 
+        # Unary minus support: -factor
+        if tok.type == MINUS:
+            self.advance()
+            factor_node = self.factor()
+            return BinOpNode(NumberNode(0), Token(MINUS, "-"), factor_node)
+
         if tok.type == NUMBER:
             self.advance()
             return NumberNode(tok.value)
@@ -197,6 +203,7 @@ def eval_node(node):
     raise Exception(f"Unknown node type: {node}")
 
 
+print("Mini Interpreter v1.0 — type 'exit' to quit")
 # Simple REPL (main loop) to test the lexer and parser
 while True:
     expr = input(">>> ")
